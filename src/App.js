@@ -5,6 +5,9 @@ import axios from 'axios';
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import process from 'process';
 import './App.css'; // Importation du fichier CSS
+import './index.css'; // Ajoute cette ligne dans ton fichier JavaScript
+
+
 
 
 
@@ -665,6 +668,8 @@ function App() {
       <div className="parallax-container">
         <video id="video-background" autoPlay loop muted>
         <source src={process.env.PUBLIC_URL + "/video/egyptfutur2.mp4"} type="video/mp4" />
+
+
           Votre navigateur ne supporte pas les vidéos HTML5.
         </video>
 
