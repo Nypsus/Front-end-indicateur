@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+    <link rel="stylesheet" href="/index.css" />
+
+    <style>
+      /* Fixation de l'image en arrière-plan */
+      body {
+        margin: 0; /* Retirer les marges par défaut */
+        padding: 0;
+        height: 100vh; /* Assurer que le corps prend toute la hauteur de la fenêtre */
+        background-image: url('/image/futur graph2.jpg'); /* Chemin relatif de l'image */
+        background-size: cover; /* L'image couvre l'écran tout en conservant ses proportions */
+        background-position: center; /* Centrer l'image */
+        background-attachment: fixed; /* L'image reste fixe lors du défilement */
+      }
+
+      /* Centrage du bouton WhatsApp */
+      .whatsapp-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* Occupe toute la hauteur de l'écran */
+      }
+
+      .whatsapp-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .whatsapp-button img {
+        width: 100px; /* Agrandir l'icône */
+        height: 100px;
+        animation: rotate 2s ease-in-out infinite;
+      }
+
+      .whatsapp-button a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .whatsapp-button span {
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      /* Animation de pivotement */
+      @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(-20deg); }
+        50% { transform: rotate(20deg); }
+        75% { transform: rotate(-20deg); }
+        100% { transform: rotate(0deg); }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <!-- Centrage du bouton WhatsApp -->
+    <div class="whatsapp-container">
+      <div class="whatsapp-button">
+        <a href="https://wa.me/34612230618?text=Bonjour%20j'ai%20acheté%20l'indicateur,%20je%20vous%20contacte%20pour%20obtenir%20la%20clef%20API." target="_blank" title="Support WhatsApp">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+          <span> Ton Indicateur Ici </span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>
+
+
+
+
+
+
