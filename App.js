@@ -663,11 +663,10 @@ function App() {
     <div className="App">
       {/* Conteneur de parallax */}
       <div className="parallax-container">
-        {/* <video id="video-background" autoPlay loop muted>
-    <source src="/video/egyptfutur2.mp4" type="video/mp4" />
-    Votre navigateur ne supporte pas les vidéos HTML5.
-  </video> */}
-  {/* ... autre contenu */}
+        <video id="video-background" autoPlay loop muted>
+          <source src="/video/egyptfutur2.mp4" type="video/mp4" />
+          Votre navigateur ne supporte pas les vidéos HTML5.
+        </video>
 
         {/* Contenu défilant */}
         <div className="content">
