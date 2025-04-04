@@ -664,7 +664,7 @@ function App() {
       {/* Conteneur de parallax */}
       <div className="parallax-container">
         <video id="video-background" autoPlay loop muted>
-          <source src="/video/egyptfutur2.mp4" type="video/mp4" />
+        <source src={process.env.PUBLIC_URL + "/video/egyptfutur2.mp4"} type="video/mp4" />
           Votre navigateur ne supporte pas les vidéos HTML5.
         </video>
 
