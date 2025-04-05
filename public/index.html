@@ -1,12 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon site</title>
-    
-   
-    
 
     <style>
       /* Fixation de la vidéo en arrière-plan */
@@ -20,60 +17,8 @@
         z-index: -1; /* La vidéo doit être derrière tout le reste */
       }
 
-      /* Conteneur de paiement */
-      .payment-wrapper {
-        background-color: rgba(0, 0, 0, 0.5);  /* Fond semi-transparent */
-        border: 5px solid gold;
-        border-radius: 15px;
-        padding: 30px;
-        margin-top: 20px;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        text-align: center;
-        position: absolute; /* Permet au formulaire d’être au-dessus de la vidéo */
-        top: 50%; /* Centrer verticalement */
-        left: 50%; /* Centrer horizontalement */
-        transform: translate(-50%, -50%); /* Ajuster le centre */
-        z-index: 1; /* S’assurer que le formulaire est au-dessus de la vidéo */
-      }
-
-      .payment-wrapper h1, .payment-wrapper p {
-        color: white;
-      }
-
-      .payment-wrapper select {
-        padding: 8px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-      }
-
-      .payment-wrapper button {
-        background-color: #000f3c;
-        color: white;
-        padding: 15px 30px;
-        font-size: 18px;
-        border: none;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: transform 0.3s, box-shadow 0.3s ease;
-        margin-top: 20px;
-      }
-
-      .payment-wrapper button:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
-        background-color: #000f3c;
-        color: gold;
-      }
-
-      .payment-wrapper button:focus {
-        outline: none;
-      }
-
-
- /* Bouton flottant WhatsApp */
- .whatsapp-button {
+      /* Bouton flottant WhatsApp */
+      .whatsapp-button {
         position: fixed;
         bottom: 20px;
         right: 20px;
@@ -87,25 +32,6 @@
       /* Animation de pivotement gauche-droite avec pause */
       @keyframes rotate {
         0% {
-          transform: rotate(0deg); /* Position de départ */
-        }
-        25% {
-          transform: rotate(-25deg); /* Rotation à gauche */
-        }
-        50% {
-          transform: rotate(25deg); /* Rotation à droite */
-        }
-        75% {
-          transform: rotate(-25deg); /* Rotation à gauche */
-        }
-        100% {
-          transform: rotate(0deg); /* Retour à la position de départ */
-        }
-      }
-
-      /* Animation combinée : rotation et pause */
-      @keyframes rotateAndPause {
-        0% {
           transform: rotate(0deg);
         }
         25% {
@@ -117,19 +43,16 @@
         75% {
           transform: rotate(-25deg);
         }
-        80% {
-          transform: rotate(0deg); /* Retour à la position de départ */
-        }
         100% {
-          transform: rotate(0deg); /* Pause finale avant de recommencer */
+          transform: rotate(0deg);
         }
       }
 
       /* Appliquer l'animation de rotation et de pause au logo */
       .whatsapp-button img {
-      width: 70px; /* Agrandir l'icône WhatsApp */
-      height: 70px;
-      animation: rotate 2s ease-in-out infinite, pause 5s infinite; /* L'animation de rotation se répète à l'infini, suivie de 5s de pause */
+        width: 70px; /* Agrandir l'icône WhatsApp */
+        height: 70px;
+        animation: rotate 2s ease-in-out infinite; /* L'animation de rotation se répète à l'infini */
       }
 
       .whatsapp-button a {
@@ -137,30 +60,31 @@
         flex-direction: column;
         align-items: center;
         padding: 10px;
-        background-color: transparent; /* Pas de fond autour du logo */
+        background-color: transparent;
         border-radius: 50%;
-        box-shadow: none; /* Pas de bordure ou de box-shadow */
-        text-decoration: none; /* Retirer le soulignement du texte */
+        box-shadow: none;
+        text-decoration: none;
       }
 
       /* Texte fixe qui ne bouge pas */
       .whatsapp-button span {
         color: white;
-        font-size: 18px; /* Augmenter la taille du texte */
-        font-weight: bold; /* Texte en gras */
+        font-size: 18px;
+        font-weight: bold;
         margin-top: 5px;
         text-align: center;
-        position: relative; /* Le texte est fixe et reste là où il est */
       }
     </style>
   </head>
 
   <body>
-    <div id="root">
-      <!-- Ici va ton application React (le contenu de ton app React sera rendu ici) -->
-    </div>
+    <!-- Vidéo en arrière-plan -->
+    <video id="bg-video" autoplay loop muted>
+      <source src="video/egyptfutur2.mp4" type="video/mp4"><!-- Remplace par l'URL de ta vidéo -->
+      Votre navigateur ne supporte pas les vidéos HTML5.
+    </video>
 
-    <!-- Bouton flottant WhatsApp avec texte -->
+    <!-- Bouton flottant WhatsApp -->
     <div class="whatsapp-button">
       <a href="https://wa.me/34612230618?text=Questions%20li%C3%A9es%20%C3%A0%20un%20produit%3F%20Probl%C3%A8me%20de%20paiement%3F%20%C3%89crivez%20votre%20message%20ici%20..." target="_blank" title="Support WhatsApp">
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
