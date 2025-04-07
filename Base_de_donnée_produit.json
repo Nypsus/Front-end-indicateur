@@ -1,5 +1,0 @@
-{
-  "product1": { "price": 5, "exists": true },
-  "product2": { "price": 299, "exists": true },
-  "product3": { "price": 499, "exists": true }
-}
