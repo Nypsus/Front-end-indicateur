@@ -22,6 +22,7 @@ const usdtABI = [
 
 
 
+  
 const contractAddress = '0xCd25eee89Bb01603f0E0cf8D8C243966a926761d';
 const bscTestnetRpcUrl = "https://bsc-dataseed.binance.org/"; // BSC Mainnet
 const bscTestnetProvider = new ethers.providers.JsonRpcProvider(bscTestnetRpcUrl);
@@ -280,6 +281,7 @@ function App() {
     product2: { price: 295, exists: true, title: "Indicateur 4h/1h" },
     product3: { price: 495, exists: true, title: "Indicateur 15mn" }
   };
+
   
 
 
@@ -524,52 +526,71 @@ const handlePayment = async () => {
 
   if (selectedProductId) {
     try {
-      // Récupérer les informations du produit
-      const product = products[selectedProductId];
-
+      const product = products[selectedProductId] || {};
+      
       if (!product || !product.exists) {
         alert("Produit non disponible.");
         return;
       }
 
-      const productPriceInUsdt = product.price;  // Prix en USDT du produit
-      const productPriceInBnb = convertedPrice;  // Prix du produit en BNB (calculé précédemment)
+      const productPriceInBnb = convertedPrice; // Assumes the product's price is already in BNB
 
-      if (isNaN(productPriceInUsdt) || productPriceInUsdt <= 0) {
-        alert("Prix du produit invalide.");
-        return;
-      }
-
-      // Vérifie si le prix en BNB est correct
       if (isNaN(productPriceInBnb) || productPriceInBnb <= 0) {
         alert("Prix du produit en BNB invalide.");
         return;
       }
 
-      console.log(`Prix du produit en USDT : ${productPriceInUsdt} USDT`);
       console.log(`Prix du produit en BNB : ${productPriceInBnb} BNB`);
 
-      // Étape 1 : Convertir le prix en BNB en Wei (format attendu par Ethereum)
+      // Convertir en Wei
       const amountInWei = ethers.utils.parseUnits(productPriceInBnb.toString(), 18);
 
-      // Étape 2 : Récupérer le provider et le signer
+      // Vérification de MetaMask
+      if (typeof window.ethereum === 'undefined') {
+        alert('MetaMask n\'est pas installé. Veuillez installer MetaMask.');
+        return;
+      }
+
+      // Demander explicitement la connexion avec MetaMask si non connecté
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      // Créer un provider avec le signer
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
 
-      // Étape 3 : Créer la transaction en envoyant le prix en BNB comme paramètre de 'value'
-      const tx = {
-        to: contractAddress, // L'adresse du smart contract
-        value: amountInWei, // Montant en BNB (MetaMask va gérer la conversion automatiquement)
-        gasLimit: 21000,
-        data: ethers.utils.defaultAbiCoder.encode(
-          ["uint256", "string"], // Types attendus par le contrat
-          [productPriceInUsdt, selectedProductId] // Prix du produit en USDT et l'ID du produit
-        ),
-      };
+      // Vérifier l'adresse du signer
+      const address = await signer.getAddress();
+      console.log("Adresse du wallet connecté : ", address);
 
-      // Étape 4 : Effectuer la transaction
+      // Créer l'instance du contrat
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+      // Créer la transaction via `populateTransaction`
+      const tx = await contract.populateTransaction.pay(
+        ethers.constants.AddressZero, // Destinataire
+        amountInWei, // Montant en Wei
+        selectedProductId, {
+          value: amountInWei,  // Si c'est un paiement en BNB
+          gasLimit: 100000,    // Ajuste le gasLimit si nécessaire
+        }
+      );
+
+      console.log('Transaction à envoyer:', tx);
+
+      // Vérification de la transaction
+      if (!tx) {
+        alert("Transaction invalide.");
+        return;
+      }
+
+      // **Envoyer explicitement la transaction via signer.sendTransaction()**
       const txResponse = await signer.sendTransaction(tx);
-      console.log("Transaction envoyée:", txResponse);
+
+      console.log('Transaction envoyée:', txResponse);
+
+      // Attendre la confirmation de la transaction
+      await txResponse.wait();
+      console.log("Transaction confirmée");
 
       alert("Paiement effectué avec succès!");
     } catch (error) {
@@ -580,6 +601,83 @@ const handlePayment = async () => {
     alert("Produit ou prix non valide.");
   }
 };
+
+
+
+const testTransaction = async () => {
+  if (typeof window.ethereum === 'undefined') {
+    alert('MetaMask n\'est pas installé.');
+    return;
+  }
+
+  try {
+    // Demander à MetaMask de se connecter (si ce n'est pas déjà fait)
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+    // Créer un fournisseur et un signer
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    // Récupérer l'adresse du signer
+    const address = await signer.getAddress();
+    console.log('Adresse du wallet connecté :', address);
+
+    // Effectuer une transaction simple, par exemple envoyer 0.01 ETH à une adresse
+    const tx = await signer.sendTransaction({
+      to: '0x000000000000000000000000000000000000dEaD', // Adresse aléatoire pour tester
+      value: ethers.utils.parseEther('0.01'), // 0.01 ETH
+      gasLimit: 21000,
+      gasPrice: ethers.utils.parseUnits('20', 'gwei')
+    });
+
+    console.log('Transaction envoyée:', tx);
+
+    // Attendre la confirmation de la transaction
+    await tx.wait();
+    console.log('Transaction confirmée');
+    alert('Transaction réussie !');
+  } catch (error) {
+    console.error('Erreur lors de la transaction:', error);
+    alert('Erreur lors de la transaction. Vérifie la console pour plus d\'infos.');
+  }
+};
+
+
+
+const handleCheckProductInfo = async (productId) => {
+  if (!walletConnected) {
+    alert("Veuillez connecter votre wallet avant de procéder.");
+    return;
+  }
+
+  try {
+    // Récupérer le provider et le signer
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    
+    const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    // Appeler la fonction de consultation de la mapping 'products'
+    const [priceInWei, exists] = await contract.products(productId);
+    
+    if (!exists) {
+      alert("Produit non disponible.");
+      return;
+    }
+
+    // Convertir le prix en BNB pour l'affichage
+    const priceInBnb = ethers.utils.formatUnits(priceInWei, 18);
+    console.log(`Produit ${productId} - Prix: ${priceInBnb} BNB`);
+
+    // Afficher les informations du produit dans la console ou dans un alert
+    alert(`Produit ${productId} trouvé !\nPrix: ${priceInBnb} BNB`);
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des informations du produit:", error);
+    alert("Une erreur est survenue lors de la récupération des informations du produit.");
+  }
+};
+
 
   
 
@@ -745,7 +843,7 @@ return (
             <option value="product3">Produit 3</option>
           </select>
 
-          <button onClick={handlePayment}>Payer pour le produit en BNB</button>
+          <button onClick={handleCheckProductInfo}>Payer pour le produit en BNB</button>
 
           {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
         </div>
