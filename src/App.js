@@ -1,13 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Web3Modal from 'web3modal';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import './App.css'; // Importation du fichier CSS
 import './index.css'; // Ajoute cette ligne dans ton fichier JavaScript
-import QRCode from 'qrcode'; // Import du package QRCode
-import Select from 'react-select';
-
 
 
 // Adresse du contrat USDT sur BSC (assure-toi que c'est l'adresse correcte pour le réseau que tu utilises)
@@ -268,12 +265,6 @@ function App() {
   const [provider, setProvider] = useState(null);
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
-  const [paymentAddress, setPaymentAddress] = useState('');
-   // Utilisation de useRef pour référencer le canvas
-  const qrCanvasRef = useRef(null);
-  const [availableNetworks, setAvailableNetworks] = useState([]); // Réseaux disponibles pour la crypto choisi
-  
-
 
   const [productInfo, setProductInfo] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null); // ou un ID de produit par défaut
@@ -289,237 +280,6 @@ function App() {
     product2: { price: 0.5027, exists: true, title: "Indicateur 4h/1h" },
     product3: { price: 0.8430, exists: true, title: "Indicateur 15mn" }
   };
-
-  const [paymentMethod, setPaymentMethod] = useState('crypto'); // "crypto" ou "manual"
-  const [selectedCrypto, setSelectedCrypto] = useState('BTC'); // Bitcoin par défaut
-  const [selectedNetwork, setSelectedNetwork] = useState('Bitcoin'); // Réseau Bitcoin par défaut
-
-  const networkMapping = {
-    Bitcoin: 'bitcoin',
-    Ethereum: 'ethereum',
-    'Binance Smart Chain': 'bsc', 
-    Polygon: 'polygon',
-    Solana: 'solana',
-    USDT: 'usdt',  // juste pour la gestion de la crypto USDT
-  };
-  
-  
-  
-  
-  
-  // Adresses de paiement des différentes cryptos
-  
-  const [addresses, setAddresses] = useState({
-    BTC: {
-      Bitcoin: '39QSDXywjem146UkfBzZq5zneEvTVv6M1J', // Adresse Bitcoin par défaut
-    },
-    ETH: {
-      ethereum: '0x2bce5955aa7aabc49ff497a3229f2bd6b480d9e0', // Adresse Ethereum par défaut
-      polygon: '0x2bce5955aa7aabc49ff497a3229f2bd6b480d9e0', // Adresse Ethereum sur Polygon
-    },
-    USDT: {
-      bsc: '0xD62B5CFdDfd26F6219E4BF366d9DB6B1450D5905', // Adresse USDT par défaut (Ethereum)
-      polygon: '0x2bce5955aa7aabc49ff497a3229f2bd6b480d9e0', // Adresse USDT sur BSC
-      solana: 'EZC4wn5TtQp1SjYQe8sxP7SDkGgokKVPkktXWrc9X2H9', // Adresse USDT sur Solana
-      tron: 'TWVsTq8WM6ggWP8R2n9kru8gXEgkzBL6hE', // Adresse USDT sur Tron
-      ethereum: '0xD62B5CFdDfd26F6219E4BF366d9DB6B1450D5905'
-    },
-    BNB: {
-      binance: '0xD62B5CFdDfd26F6219E4BF366d9DB6B1450D5905', // Adresse pour le réseau Binance
-    },
-    SOL: {
-      solana: 'EZC4wn5TtQp1SjYQe8sxP7SDkGgokKVPkktXWrc9X2H9', // Adresse Solana
-    },
-    POLYGON: {
-      polygon: '0x2bce5955aa7aabc49ff497a3229f2bd6b480d9e0', // Adresse Polygon
-    },
-  });
-  
-
-
-
-  const networksForCrypto = {
-    BTC: ['Bitcoin'],
-    ETH: ['Ethereum', 'Polygon'],
-    USDT: ['Binance Smart Chain', 'Polygon', 'Solana', 'Tron', 'Ethereum'],  // Ajout d'Ethereum pour USDT
-    BNB: ['Binance'],
-    SOL: ['Solana'],
-    POLYGON: ['Polygon'],
-  };
-  
-  
-  
-
-  // Définir les options avec les logos
-  const cryptoOptions = [
-    {
-      value: 'BTC',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img 
-            src="https://gateway.pinata.cloud/ipfs/bafkreicfpg4da6nrgmzdyftmjs3nphgjd5epb5oveswe3i4bgadmfxw7ry" 
-            alt="Bitcoin" 
-            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-          />
-          Bitcoin
-        </div>
-      ),
-    },
-    {
-      value: 'ETH',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img 
-            src="https://gateway.pinata.cloud/ipfs/bafkreicfpg4da6nrgmzdyftmjs3nphgjd5epb5oveswe3i4bgadmfxw7ry" 
-            alt="Ethereum" 
-            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-          />
-          Ethereum
-        </div>
-      ),
-    },
-    {
-      value: 'USDT',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img 
-            src="https://gateway.pinata.cloud/ipfs/bafkreickbvf6pst3g4pwagjsf4mamojbzqgryehrvvhrwk55rzzj4htaxq" 
-            alt="Tether" 
-            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-          />
-          Tether
-        </div>
-      ),
-    },
-    {
-      value: 'BNB',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img 
-            src="https://gateway.pinata.cloud/ipfs/bafybeid3ddd2et2o3f6wsw7iy47rbwlywksld65v5xelbsrxslanxp5mze" 
-            alt="BNB" 
-            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-          />
-          BNB
-        </div>
-      ),
-    },
-    {
-      value: 'SOL',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img 
-            src="https://gateway.pinata.cloud/ipfs/bafybeihsbexfrujpws74oqsu7ewltiy4xfq5ihafo3vfvighw5pnxqn74u" 
-            alt="Solana" 
-            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-          />
-          Solana
-        </div>
-      ),
-    },
-    {
-      value: 'POLYGON',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img 
-            src="https://gateway.pinata.cloud/ipfs/bafkreidyyru4d3ouw4wi7x2ng46ld5y7es6nlxmzndlq63pzdmfht22sq4" 
-            alt="Polygon" 
-            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-          />
-          Polygon
-        </div>
-      ),
-    },
-  ];
-  
-  
-
-
-
-// Exemple de réseaux avec logos
-const networkOptions = [
-  {
-    value: 'Bitcoin',
-    label: (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img 
-          src="https://gateway.pinata.cloud/ipfs/bafkreigp3qorspavny4bjzjggztecqdtx3mnvpz4fl56ebr2a6mx5m6j3y" 
-          alt="Bitcoin Network" 
-          style={{ width: 20, height: 20, marginRight: 10 }} 
-        />
-        Bitcoin
-      </div>
-    ),
-  },
-  {
-    value: 'Ethereum',
-    label: (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img 
-          src="https://gateway.pinata.cloud/ipfs/bafkreigp3qorspavny4bjzjggztecqdtx3mnvpz4fl56ebr2a6mx5m6j3y" 
-          alt="Ethereum Network" 
-          style={{ width: 20, height: 20, marginRight: 10 }} 
-        />
-        Ethereum
-      </div>
-    ),
-  },
-  {
-    value: 'Polygon',
-    label: (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img 
-          src="https://gateway.pinata.cloud/ipfs/bafkreig7gjsiwnrxffuqpipnqcurbrdbzr42tl36ja6cabdsy3c26gxl3m" 
-          alt="Polygon Network" 
-          style={{ width: 20, height: 20, marginRight: 10 }} 
-        />
-        Polygon
-      </div>
-    ),
-  },
-  {
-    value: 'Binance Smart Chain',
-    label: (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img 
-          src="https://gateway.pinata.cloud/ipfs/bafkreiamohhhifxucpapedzlgd37ee3wleu5yqabgqzwlefc54ml2zyway" 
-          alt="Binance Network" 
-          style={{ width: 20, height: 20, marginRight: 10 }} 
-        />
-        Binance Smart Chain
-      </div>
-    ),
-  },
-  {
-    value: 'Solana',
-    label: (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img 
-          src="https://gateway.pinata.cloud/ipfs/bafkreihciopspxz7o5yibfaqwfo65g3v5yasautrtkbm2ywk2epvxfayjm" 
-          alt="Solana Network" 
-          style={{ width: 20, height: 20, marginRight: 10 }} 
-        />
-        Solana
-      </div>
-    ),
-  },
-  {
-    value: 'Tron',
-    label: (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img 
-          src="https://gateway.pinata.cloud/ipfs/bafkreihciopspxz7o5yibfaqwfo65g3v5yasautrtkbm2ywk2epvxfayjm" 
-          alt="Tron Network" 
-          style={{ width: 20, height: 20, marginRight: 10 }} 
-        />
-        Tron (TRC20)
-      </div>
-    ),
-  },
-];
-
-
-  
   
 
   
@@ -674,7 +434,19 @@ const networkOptions = [
   };
   
 
+  // Récupération du taux de conversion BNB vers USD
+  const getBNBToUSDTRate = async () => {
+    try {
+      const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd');
+      const rate = response.data.binancecoin.usd;
   
+      // Vérifie si le taux est bien récupéré et l'affiche
+      console.log("Taux de conversion BNB -> USDT : ", rate);
+      setBnbToUsdRate(rate);
+    } catch (error) {
+      console.error('Erreur lors de la récupération du taux BNB -> USDT', error);
+    }
+  };
 
    // Charger les données du contrat et les informations du produit
    useEffect(() => {
@@ -750,67 +522,80 @@ const networkOptions = [
   
   
   // Mise à jour des informations du produit
-
-  const updateProductInfo = (selectedProductId) => {
-    const productDetails = products[selectedProductId];  // Utilisation de l'objet local products
-    if (productDetails) {
-      const { price, exists } = productDetails;
-      setProductPrice(price);  // Met à jour le prix
-      setProductInfo({ price, exists });  // Met à jour les informations du produit
-  
-      // Si le taux de conversion est disponible, calculer le prix en BNB
-      if (bnbToUsdRate) {
-        const convertedPrice = Math.ceil(price * bnbToUsdRate);
-
-        setConvertedPrice(convertedPrice.toString());
-      }
-    } else {
-      setProductInfo({ exists: false });  // Si le produit n'existe pas
-      setProductPrice(null);
-      setConvertedPrice(null);
-    }
-  };
-  
-  
-
-
-const fetchProductPrice = async (productId) => {
-  if (!window.ethereum) {
-    alert('MetaMask est requis pour interagir avec ce contrat.');
+const updateProductInfo = (selectedProductId) => {
+  if (!selectedProductId) {
+    // Si aucun produit n'est sélectionné, on réinitialise tout
+    setProductInfo(null);
+    setProductPrice(null);
+    setConvertedPrice(null);
     return;
   }
 
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const contract = new ethers.Contract(contractAddress, contractABI, provider);
+  const productDetails = products[selectedProductId];  // Utilisation de l'objet local products
+  if (productDetails) {
+    const { price, exists } = productDetails;
+    setProductPrice(price);  // Met à jour le prix
+    
+    // Mise à jour des informations du produit
+    setProductInfo({ 
+      price, 
+      exists 
+    });
 
-  try {
-    setLoading(true);
-    // Récupérer le produit depuis le smart contract
-    const product = await contract.products(productId);
-
-    if (product.exists) {
-      let priceInWei = product.price.toString();  // Récupère la valeur brute du prix (en Wei)
-
-      // Affiche la valeur brute du prix pour débogage
-      console.log('Valeur brute récupérée du smart contract :', priceInWei);
-
-      // Utiliser `ethers.utils.formatUnits()` pour convertir en BNB (18 décimales par défaut)
-      let priceBNB = ethers.utils.formatUnits(priceInWei, 18);
-
-      console.log('Prix du produit après conversion :', priceBNB, 'BNB');
-      
-      // Retourner le prix en BNB
-      return { priceInBNB: parseFloat(priceBNB) }; // Assure-toi de retourner un nombre flottant
-    } else {
-      console.log('Produit non trouvé');
-      return null;  // Retourner null si le produit n'existe pas
+    // Si le taux de conversion est disponible, calculer le prix en USDT et le mettre dans productInfo
+    if (bnbToUsdRate) {
+      const convertedPrice = Math.round(price * bnbToUsdRate);
+      setConvertedPrice(convertedPrice.toString());  // Met à jour le prix en USDT
     }
-  } catch (error) {
-    console.error('Erreur lors de la récupération du prix', error);
-  } finally {
-    setLoading(false);
+  } else {
+    setProductInfo({ exists: false });  // Si le produit n'existe pas
+    setProductPrice(null);
+    setConvertedPrice(null);
   }
 };
+  
+  
+  
+
+
+  const fetchProductPrice = async (productId) => {
+    if (!window.ethereum) {
+      alert('MetaMask est requis pour interagir avec ce contrat.');
+      return;
+    }
+  
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contract = new ethers.Contract(contractAddress, contractABI, provider);
+  
+    try {
+      setLoading(true);
+      // Récupérer le produit depuis le smart contract
+      const product = await contract.products(productId);
+  
+      if (product.exists) {
+        let priceInWei = product.price.toString();  // Récupère la valeur brute du prix (en Wei)
+  
+        // Affiche la valeur brute du prix pour débogage
+        console.log('Valeur brute récupérée du smart contract :', priceInWei);
+  
+        // Utiliser `ethers.utils.formatUnits()` pour convertir en BNB (18 décimales par défaut)
+        let priceBNB = ethers.utils.formatUnits(priceInWei, 18);
+  
+        console.log('Prix du produit après conversion :', priceBNB, 'BNB');
+        
+        // Retourner le prix en BNB
+        return { priceInBNB: parseFloat(priceBNB) }; // Assure-toi de retourner un nombre flottant
+      } else {
+        console.log('Produit non trouvé');
+        return null;  // Retourner null si le produit n'existe pas
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération du prix', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
 
 
@@ -920,8 +705,7 @@ const processPayment = async () => {
         alert("Achat effectué avec succès !");
         
         // Rediriger l'utilisateur après un paiement réussi
-        window.location.href = "https://nypsus.github.io//pages/Delivrance_IndicateurD.html";
-
+        window.location.href = "/pages/Delivrance_IndicateurD.html";
   
       } catch (error) {
         console.error("Erreur lors du paiement:", error);
@@ -936,63 +720,17 @@ const processPayment = async () => {
 };
 
 
-//Les differents taux de conversions
-const [conversionRate, setConversionRate] = useState(null);
 
 
-// Fonction pour récupérer le taux de conversion crypto -> USDT
-const getConversionRate = async (crypto) => {
-  try {
-    const response = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=${crypto}&vs_currencies=usdt`);
-    const rate = response.data[crypto]?.usdt;  // Récupère le taux de conversion de la crypto vers USDT
-    setConversionRate(rate);
-  } catch (error) {
-    console.error('Erreur lors de la récupération du taux de conversion:', error);
-  }
-};
 
-// Fonction pour récupérer le taux de BNB -> USDT
-const getBNBToUSDTRate = async () => {
-  try {
-    const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd');
-    const rate = response.data.binancecoin.usd;  // Taux de conversion de BNB vers USD
-    setBnbToUsdRate(rate);
-  } catch (error) {
-    console.error('Erreur lors de la récupération du taux BNB -> USDT', error);
-  }
-};
 
 // useEffect pour récupérer les taux de conversion quand la crypto ou le produit change
 useEffect(() => {
-  if (selectedCrypto) {
-    getConversionRate(selectedCrypto);  // Récupère le taux de la crypto vers USDT
-  }
   if (selectedProductId) {
-    getBNBToUSDTRate();  // Récupère le taux de BNB vers USDT
+    
+    getBNBToUSDTRate();
   }
-}, [selectedCrypto, selectedProductId]);  // Déclenche quand selectedCrypto ou selectedProductId change
-
-
-
-
-const getConvertedPrice = () => {
-  if (!productInfo || !conversionRate || !bnbToUsdRate) {
-    return null;  // Si les informations ne sont pas disponibles, retourne null
-  }
-
-  // Calcul du prix en USDT
-  const priceInUsdt = productInfo.productPrice * bnbToUsdRate;  // Prix du produit en USDT
-
-  // Calcul du prix en crypto sélectionnée
-  const priceInCrypto = priceInUsdt / conversionRate;  // Conversion de l'USDT vers la crypto
-
-  return priceInCrypto.toFixed(4);  // Retourne le prix arrondi à 4 décimales
-};
-
-
-
-
-
+}, [selectedProductId]);
 
   
 
@@ -1007,138 +745,51 @@ useEffect(() => {
 const handleProductSelection = async (event) => {
   const selectedId = event.target.value;
   setSelectedProductId(selectedId);
-  updateProductInfo(selectedId); // Met à jour les infos locales pour le produit
-  await fetchProductPrice(selectedId); // Appelle la fonction pour récupérer le prix du produit
-};
 
-
-// Payment manuel QR CODE !!
-
-
-
-// Récupérer les réseaux disponibles pour une crypto donnée
-const getAvailableNetworks = (crypto) => {
-  const networks = Object.keys(addresses[crypto] || {});
-  return networks;
-};
-
-// Mémorisation de la fonction generateQRCode avec useCallback
-const generateQRCode = useCallback(() => {
-  // Remap du réseau sélectionné pour correspondre aux clés dans 'addresses'
-  let selectedNetworkKey = networkMapping[selectedNetwork] || selectedNetwork.toLowerCase();
-
-  // Si c'est Bitcoin, ne pas appliquer .toLowerCase()
-  if (selectedCrypto === 'BTC' && selectedNetwork === 'Bitcoin') {
-    selectedNetworkKey = 'Bitcoin'; // Laisser "Bitcoin" avec B majuscule
-  } else {
-    selectedNetworkKey = selectedNetwork.toLowerCase(); // Appliquer .toLowerCase() pour les autres réseaux
-  }
-
-  // Récupère l'adresse selon la crypto et le réseau
-  const selectedAddress =
-    addresses[selectedCrypto]?.[selectedNetworkKey] ||
-    addresses[selectedCrypto]?.default;
-
-  // Vérifier si la crypto choisie est BTC et si le réseau est valide
-  if (selectedCrypto === 'BTC' && selectedNetwork !== 'Bitcoin') {
-    setErrorMessage('Bitcoin ne supporte que le réseau Bitcoin');
-    console.error('Bitcoin ne supporte que le réseau Bitcoin');
+  // Si l'utilisateur a sélectionné l'option vide
+  if (selectedId === "") {
+    setProductInfo(null);
+    setProductPrice(null);
+    setConvertedPrice(null);
     return;
   }
 
-  let qrData = '';
-  if (selectedCrypto === 'BTC') {
-    qrData = `bitcoin:${selectedAddress}`;
-  } else if (selectedCrypto === 'ETH' || selectedCrypto === 'BNB' || selectedCrypto === 'SOL' || selectedCrypto === 'POLYGON') {
-    // Gestion des adresses pour Ethereum, BNB, Solana et Polygon
-    qrData = `${selectedCrypto.toLowerCase()}:${selectedAddress}`;
-  } else if (selectedCrypto === 'USDT') {
-    // Pour USDT, on génère l'adresse avec le réseau spécifique (par exemple, bsc, polygon, etc.)
+  updateProductInfo(selectedId);  // Met à jour les infos locales pour le produit
+  const result = await fetchProductPrice(selectedId); // Appelle la fonction pour récupérer le prix du produit
+
+  // Si le résultat est valide, on met à jour `productInfo` avec le prix récupéré
+  if (result?.priceInBNB !== null) {
+    setProductInfo((prevState) => ({
+      ...prevState,
+      priceInBNB: result.priceInBNB
+    }));
+  }
+};
+
+
+
   
-    // Vérifier si le réseau sélectionné est Binance Smart Chain (BSC)
-    if (selectedNetwork === 'Binance Smart Chain') {
-      qrData = `bsc:${selectedAddress}`;  // Utilise l'adresse spécifique pour BSC
-    } else {
-      qrData = `${selectedNetwork.toLowerCase()}:${selectedAddress}`;  // Autres réseaux
-    }
-  } else {
-    setErrorMessage('Crypto non supportée pour le QR Code');
-    console.error('Crypto non supportée pour le QR Code');
-    return;
-  }
-
-
-  // Vérification du QR Code
-  console.log("QR Data généré:", qrData); // Ajouter cette ligne pour vérifier les données du QR Code
   
-  // Génération du QR code
-  if (qrCanvasRef.current) {
-    QRCode.toCanvas(qrCanvasRef.current, qrData, (error) => {
-      if (error) {
-        console.error("Erreur lors de la génération du QR Code", error);
-        setErrorMessage("Erreur lors de la génération du QR Code");
-      } else {
-        console.log('QR Code généré avec succès');
-      }
-    });
-  } else {
-    console.error('Canvas non trouvé dans le DOM');
-    setErrorMessage("Canvas non trouvé dans le DOM");
-  }
-
-  setPaymentAddress(selectedAddress);
-}, [selectedCrypto, selectedNetwork, addresses, networkMapping]);
-
-
-useEffect(() => {
-  if (!selectedCrypto) return; // Si aucune crypto n'est sélectionnée, ne rien faire
-  const networks = getAvailableNetworks(selectedCrypto);
-  setAvailableNetworks(networks); // Met à jour les réseaux disponibles pour la crypto
-  setSelectedNetwork(networks.length > 0 ? networks[0] : ''); // Par défaut, sélectionne le premier réseau disponible
-}, [selectedCrypto]);
-
-// Générer le QR Code chaque fois que la crypto ou le réseau change
-useEffect(() => {
-  if (paymentMethod === 'manual' && selectedCrypto && selectedNetwork) {
-    generateQRCode();
-  }
-}, [selectedCrypto, selectedNetwork, paymentMethod, generateQRCode]);
-
-// Handlers pour la sélection de la crypto et du réseau
-const handleCryptoChange = (event) => {
-  setSelectedCrypto(event.target.value);
-};
-
-const handleNetworkChange = (event) => {
-  setSelectedNetwork(event.target.value);
-};
-
-const handlePaymentMethodChange = (event) => {
-  setPaymentMethod(event.target.value);
-};
-
+  
 // Affichage de l'interface utilisateur
 return (
   <div className="App">
     <div className="parallax-container">
       <video id="video-background" autoPlay loop muted>
-        <source
-          src="https://gateway.pinata.cloud/ipfs/QmPZ8v3KzeyH2Dqz29TZFWe4kswkUETJyesZFCFULtagwv"
-          type="video/mp4"
-        />
+        <source src="https://gateway.pinata.cloud/ipfs/QmPZ8v3KzeyH2Dqz29TZFWe4kswkUETJyesZFCFULtagwv" type="video/mp4" />
         Votre navigateur ne supporte pas les vidéos HTML5.
       </video>
 
       <div className="content">
         <div className="wallet-connect-button">
-          <button onClick={() => setWalletConnected(true)} disabled={walletConnected}>
+          <button onClick={connectWallet} disabled={walletConnected}>
             {walletConnected ? (
               <>
                 <span>Wallet connecté : {walletAddress}</span>
                 <span className="arrow-icon">→</span>
               </>
             ) : (
-              "Connecter le wallet"
+              'Connecter le wallet'
             )}
           </button>
         </div>
@@ -1146,114 +797,25 @@ return (
         <div className="payment-wrapper">
           <h1>Les Indicateurs à Levier</h1>
 
-          {/* Affichage des informations sur le produit */}
           {productInfo && (
             <div>
               <p>Produit choisi : {products[selectedProductId]?.title}</p>
-              <p>Prix du produit en BNB : {productInfo.productPrice} BNB</p>
-              <p>Prix du produit en USDT : {productInfo.convertedPrice || "Chargement..."} USDT</p>
-              <p>Le produit est {productInfo.exists ? "disponible" : "indisponible"}</p>
+              <p>Prix du produit en BNB : {productInfo.priceInBNB ? productInfo.priceInBNB + " BNB" : "Chargement..."}</p>
+              <p>Prix du produit en USDT : {convertedPrice || "Chargement..."} USDT</p>
+              <p>Le produit est {productInfo.exists ? 'disponible' : 'indisponible'}</p>
             </div>
           )}
 
           <select onChange={handleProductSelection} value={selectedProductId}>
             <option value="">Sélectionnez un produit</option>
-            <option value="product1">Produit 1</option>
-            <option value="product2">Produit 2</option>
-            <option value="product3">Produit 3</option>
+            <option value="product1">Indicateur Daily</option>
+            <option value="product2">Indicateur 4h/1h</option>
+            <option value="product3">Indicateur 15mn</option>
           </select>
 
           <button onClick={handleBuyButtonClick}>
             Payer pour le produit en BNB
           </button>
-
-          <div>
-            <label>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="crypto"
-                checked={paymentMethod === 'crypto'}
-                onChange={handlePaymentMethodChange}
-              />
-              Paiement avec Crypto
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="manual"
-                checked={paymentMethod === 'manual'}
-                onChange={handlePaymentMethodChange}
-              />
-              Paiement manuel
-            </label>
-          </div>
-
-          {/* Formulaire de paiement manuel */}
-          {paymentMethod === 'manual' && (
-            <div className="manual-payment-form">
-              <h3>Choisissez votre méthode de paiement</h3>
-
-              <div>
-                <label>
-                  Crypto
-                  <select onChange={handleCryptoChange} value={selectedCrypto}>
-                    {cryptoOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <img 
-                            src={option.label.props.children[0].props.src} 
-                            alt={option.label.props.children[0].props.alt} 
-                            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-                          />
-                          {option.value}
-                        </div>
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div>
-                <label>
-                  Réseau
-                  <select onChange={handleNetworkChange} value={selectedNetwork}>
-                    {/* Filtrer les réseaux disponibles en fonction de la crypto sélectionnée */}
-                    {networksForCrypto[selectedCrypto]?.map(network => (
-                      <option key={network} value={network}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <img 
-                            src={networkOptions.find(n => n.value === network)?.label.props.children[0].props.src} 
-                            alt={network} 
-                            style={{ width: '20px', height: '20px', marginRight: '10px' }} 
-                          />
-                          {network}
-                        </div>
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div>
-                <p>
-                  Veuillez effectuer un transfert de {getConvertedPrice() || '...'} {selectedCrypto.toUpperCase()} à l'adresse suivante :
-                </p>
-
-                <p>Adresse : {paymentAddress}</p>
-              </div>
-
-              {/* Ajouter le canvas pour afficher le QR code */}
-              <div>
-                <canvas ref={qrCanvasRef} width="200" height="200"></canvas>
-              </div>
-
-              <div>
-                <button>Confirmer le paiement</button>
-              </div>
-            </div>
-          )}
 
           {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
         </div>
@@ -1261,7 +823,6 @@ return (
     </div>
   </div>
 );
-
 
 };
 

@@ -42,23 +42,39 @@ body {
 }
 
 
+/* Conteneur parent global pour la largeur partagée */
+.payment-container {
+  width: 100%;  /* Utilise toute la largeur du parent */
+  max-width: 600px;  /* Limité à 600px pour correspondre à payment-wrapper */
+  margin: 0 auto;  /* Centrer horizontalement */
+  position: relative; /* Important pour les éléments absolument positionnés à l'intérieur */
+}
+
 
 /* Le formulaire de paiement ou autres éléments */
 .payment-wrapper {
-  position: absolute; /* Absolu par rapport au parent */
-  top: 10%; /* Remonte le formulaire à 30% de la hauteur */
+  position: relative;  /* Utilise relative au lieu de absolute */
+  top: 10%;  /* Remonte le formulaire à 30% de la hauteur */
   left: 50%;
   transform: translateX(-50%); /* Garde le formulaire centré horizontalement */
   background-color: rgba(0, 0, 0, 0.5); /* Fond sombre avec opacité */
   border: 5px solid gold;
   border-radius: 15px;
   padding: 30px;
-  width: 100%;
-  max-width: 600px;
+  width: 100%;  /* Utiliser 100% de la largeur du parent */
+  max-width: 600px;  /* Limité à 600px */
   text-align: center;
   z-index: 2; /* Assure que le formulaire soit au-dessus de la vidéo */
   transition: transform 0.3s ease-out; /* Transition */
 }
+
+
+
+
+
+
+
+
 
 .payment-wrapper select {
   padding: 8px;
@@ -277,3 +293,122 @@ body {
 }
 
 
+.payment-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* Espace entre les éléments */
+  margin-top: 20px;
+}
+
+
+
+
+.custom-select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ffd700;
+  font-size: 16px;
+  color: #ffd700;
+  background-color: #000f3c;
+  width: 75%;
+  text-align: center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+
+
+
+
+
+
+/* Assurer que .select-wrapper ait la même largeur que le payment-wrapper */
+.select-wrapper {
+  width: 100%; /* Prendre toute la largeur disponible du parent (payment-wrapper) */
+  max-width: 600px; /* Limiter la largeur à 600px, comme payment-wrapper */
+  margin: 0 auto; /* Centrer le wrapper horizontalement */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  
+  gap: 10px; /* Ajouter un peu d'espace entre le label et le select */
+  margin-bottom: 20px;
+}
+
+/* Aligner les labels sous les selecteurs */
+.select-wrapper label {
+  display: block; /* Permet au label de prendre toute la largeur disponible */
+  width: 100%; /* Assure que le label prenne toute la largeur */
+  text-align: center; /* Centrer le texte du label */
+  margin-top: 10px; /* Espacement au-dessus du label */
+  margin-bottom: 0; /* Pas d'espacement en dessous du label */
+}
+
+/* Style du select à l'intérieur de .select-wrapper */
+.select-wrapper select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ffd700; /* Bordure dorée */
+  font-size: 16px;
+  color: #ffd700; /* Texte doré */
+  background-color: #000f3c; /* Fond sombre */
+  width: 78%; /* Le select prend 75% de la largeur de son parent */
+  text-align: center; /* Centrer le texte dans le select */
+  appearance: none; /* Supprimer l’apparence native */
+
+  /* Décalage manuel à gauche */
+  margin-left: 0px;   /* Décale le select de 50px vers la gauche (ajuste cette valeur comme tu veux) */
+}
+
+
+/* Personnalisation des options pour Crypto et Réseau */
+.select-wrapper select option {
+  background-color: #000f3c;
+  color: #ffd700;
+  text-align: center;
+  padding: 8px;
+}
+
+.select-wrapper select option:checked {
+  color: #ffd700;
+  background-color: #000f3c;
+}
+
+.select-wrapper select option:hover {
+  background-color: #b8860b; /* Fond doré au survol */
+  color: white;
+}
+
+.select-wrapper select::-ms-expand {
+  display: none; /* Enlever la flèche du sélecteur pour IE et Edge */
+}
+
+/* Animation métallique pour les options */
+.select-wrapper select option {
+  background: linear-gradient(45deg, #ffd700, #ffcc00, #b8860b, #d4af37); /* Dégradé métallique */
+  background-size: 400% 400%;
+  color: #ffd700;
+  animation: border-shine 3s infinite linear;
+}
+
+
+/* Appliquer à .payment-section et .manual-payment-form pour qu'ils aient la même largeur que .payment-wrapper */
+
+/* Payment section */
+.payment-section.manual-payment-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* Espace entre les éléments */
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: center;
+  width: 100%;  /* Prendre toute la largeur disponible du parent */
+  max-width: 600px;  /* Limiter à 600px */
+  margin: 0 auto;  /* Centrer horizontalement */
+}
