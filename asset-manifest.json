@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/Front-end-indicateur/static/css/main.160403e3.css",
+    "main.js": "/Front-end-indicateur/static/js/main.6ed2bd5c.js",
+    "index.html": "/Front-end-indicateur/index.html",
+    "main.160403e3.css.map": "/Front-end-indicateur/static/css/main.160403e3.css.map",
+    "main.6ed2bd5c.js.map": "/Front-end-indicateur/static/js/main.6ed2bd5c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.160403e3.css",
+    "static/js/main.6ed2bd5c.js"
+  ]
+}
