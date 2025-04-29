@@ -631,7 +631,8 @@ const checkProductExistence = async (productId) => {
 // Fonction qui sera appelée au clic sur le bouton "Acheter"
 const handleBuyButtonClick = async () => {
   // Rediriger l'utilisateur après un paiement réussi
-  window.location.href = '/Front-end-indicateur/Delivrance_IndicateurD.html';
+  window.location.href = '/Delivrance_IndicateurD.html';
+
 
 };
 
