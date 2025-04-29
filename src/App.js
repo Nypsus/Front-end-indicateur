@@ -630,11 +630,29 @@ const checkProductExistence = async (productId) => {
 
 // Fonction qui sera appelée au clic sur le bouton "Acheter"
 const handleBuyButtonClick = async () => {
-  // Rediriger l'utilisateur après un paiement réussi
-  window.location.href = '/Delivrance_IndicateurD.html';
+  console.log("Clic sur le bouton Payer !");
 
+  // Vérifier si l'utilisateur est sur le bon réseau (BSC)
+  const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+  const expectedChainId = '0x38'; // ID de la Binance Smart Chain (BSC)
 
+  if (currentChainId !== expectedChainId) {
+    console.log("Mauvais réseau, bascule sur le BSC...");
+
+    // Essayer de basculer sur le réseau BSC
+    await switchNetwork();
+
+    // Attendre un peu pour s'assurer que le réseau a été changé
+    setTimeout(async () => {
+      // Relancer automatiquement la fonction de paiement après le changement de réseau
+      await processPayment();  // Cette fonction gère la logique de paiement
+    }, 1000); // Attendre 1 seconde pour s'assurer que le changement de réseau est effectué
+  } else {
+    // Si l'utilisateur est déjà sur le bon réseau, procéder directement à la transaction
+    await processPayment();
+  }
 };
+
 
 // Fonction pour gérer le paiement
 // Fonction pour gérer le paiement
