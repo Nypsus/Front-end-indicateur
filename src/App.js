@@ -276,7 +276,7 @@ function App() {
   const [convertedPrice, setConvertedPrice] = useState(null);
   const [contractInstance, setContractInstance] = useState(null); // Déclarez `contractInstance` ici
   const products = {
-    product1: { price: 0.001693709562684191, exists: true, title: "Indicateur Daily" },
+    product1: { price:  0.3184, exists: true, title: "Indicateur Daily" },
     product2: { price: 0.5027, exists: true, title: "Indicateur 4h/1h" },
     product3: { price: 0.8430, exists: true, title: "Indicateur 15mn" }
   };
