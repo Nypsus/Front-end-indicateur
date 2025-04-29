@@ -543,8 +543,13 @@ const updateProductInfo = (selectedProductId) => {
     });
 
     // Si le taux de conversion est disponible, calculer le prix en USDT et le mettre dans productInfo
-    if (bnbToUsdRate) {
+    if (bnbToUsdRate && price) {
+      // Vérifie si les valeurs sont bien définies et valides
+      console.log("Prix du produit en BNB : ", price);
+      console.log("Taux de conversion BNB -> USDT : ", bnbToUsdRate);
+
       const convertedPrice = Math.round(price * bnbToUsdRate);
+      console.log("Prix converti en USDT : ", convertedPrice);
       setConvertedPrice(convertedPrice.toString());  // Met à jour le prix en USDT
     }
   } else {
