@@ -21,7 +21,8 @@ const usdtABI = [
 
 
 
-  
+const isMobileDevice = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 const contractAddress = '0xCd25eee89Bb01603f0E0cf8D8C243966a926761d';
 const bscTestnetRpcUrl = "https://bsc-dataseed.binance.org/"; // BSC Mainnet
 const bscTestnetProvider = new ethers.providers.JsonRpcProvider(bscTestnetRpcUrl);
@@ -280,6 +281,15 @@ function App() {
     product2: { price: 0.5027, exists: true, title: "Indicateur 4h/1h" },
     product3: { price: 0.8430, exists: true, title: "Indicateur 15mn" }
   };
+
+  const isMetaMaskInstalled = () => {
+    return typeof window.ethereum !== "undefined" && window.ethereum.isMetaMask;
+  };
+  
+  const isMobile = () => {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  };
+  
   
 
   
@@ -292,29 +302,19 @@ function App() {
   
   // Initialisation de Web3Modal pour la connexion aux portefeuilles
   useEffect(() => {
-  const modal = new Web3Modal({
-    cacheProvider: true, // Gardera en cache la dernière connexion
-    providerOptions: {
-      walletconnect: {
-        package: WalletConnectProvider, // Utilisation de WalletConnectProvider
-        options: {
-          infuraId: "e759bc5af90042a1b66c5a01aae905af" // Remplace avec ton propre infura ID
+    const modal = new Web3Modal({
+      cacheProvider: false, // ← mieux de désactiver si tu gères manuellement les connexions
+      providerOptions: {
+        injected: {
+          package: null,
+          display: {
+            name: "MetaMask",
+            description: "Connexion via l'extension MetaMask",
+          }
         }
-      },
-      metamask: {
-        package: null, // MetaMask ne nécessite pas de package
-        
-      },
-      trustwallet: {
-        package: WalletConnectProvider, // Utilisation de WalletConnectProvider pour Trust Wallet
-        options: {
-          infuraId: "pDtEhrK4AAiPfirK7qsQI25NJlgrtMu1bBcFDqV4J95GTCAR2d/8Lg" // Remplace avec ton propre infura ID
-        }
-      },
-      
-      // Ajoute d'autres options de portefeuille ici si nécessaire (par exemple : Fortmatic, etc.)
-    }
-  });
+      }
+    });
+    
 
   setWeb3Modal(modal);
 
@@ -383,7 +383,34 @@ function App() {
 
 
   // Connexion au wallet via Web3Modal
+  
   const connectWallet = async () => {
+    if (isMobileDevice()) {
+      // Redirection mobile vers MetaMask avec ton site embarqué
+      const dappURL = "leverage-indicator.netlify.app/"; // ← remplace par ton vrai domaine SANS https://
+      const metamaskAppDeepLink = `https://metamask.app.link/dapp/${dappURL}`;
+  
+      // Petite sécurité : tenter de rediriger proprement
+      try {
+        window.location.href = metamaskAppDeepLink;
+      } catch (err) {
+        alert("Veuillez installer MetaMask pour continuer.");
+        // Redirection vers App Store ou Play Store
+        window.location.href = "https://metamask.io/download/";
+      }
+  
+      return; // On ne continue pas plus loin sur mobile
+    }
+
+     // Cas desktop → si MetaMask n’est pas installé
+    if (typeof window.ethereum === "undefined" || !window.ethereum.isMetaMask) {
+      alert("MetaMask nest pas installé. Vous allez être redirigé vers la page de téléchargement.");
+      window.open("https://metamask.io/download/", "_blank");
+      return;
+    }
+
+
+    // Desktop flow (comme avant)
     if (!web3Modal) {
       console.error("Web3Modal non initialisé");
       return;
@@ -790,6 +817,16 @@ const handleProductSelection = async (event) => {
 };
 
 
+const redirectToMetaMaskApp = () => {
+  const dappURL = "www.tonsite.com"; // Remplace par ton domaine
+  const metamaskAppDeepLink = `https://metamask.app.link/dapp/${dappURL}`;
+
+  try {
+    window.location.href = metamaskAppDeepLink;
+  } catch (err) {
+    alert("MetaMask n'est pas installé. Vous pouvez le télécharger ici : https://metamask.io/download/");
+  }
+};
 
 
   
@@ -803,6 +840,14 @@ return (
         <source src="https://gateway.pinata.cloud/ipfs/QmPZ8v3KzeyH2Dqz29TZFWe4kswkUETJyesZFCFULtagwv" type="video/mp4" />
         Votre navigateur ne supporte pas les vidéos HTML5.
       </video>
+
+
+      {/* Affichage du bouton sur mobile seulement */}
+      {isMobileDevice() && !walletConnected && (
+        <div className="mobile-wallet-redirect">
+          <button onClick={redirectToMetaMaskApp}>Ouvrir dans MetaMask</button>
+        </div>
+      )}
 
       <div className="content">
         <div className="wallet-connect-button">
