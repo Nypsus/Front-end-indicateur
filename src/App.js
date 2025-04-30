@@ -558,43 +558,59 @@ const updateProductInfo = (selectedProductId) => {
   
 
 
-  const fetchProductPrice = async (productId) => {
-    if (!window.ethereum) {
-      alert('MetaMask est requis pour interagir avec ce contrat.');
-      return;
+const fetchProductPrice = async (productId) => {
+  if (!window.ethereum) {
+    alert('MetaMask est requis pour interagir avec ce contrat.');
+
+    // Réinitialiser l'interface si MetaMask n'est pas disponible
+    setSelectedProductId("");
+    setProductInfo(null);
+    setProductPrice(null);
+    setConvertedPrice(null);
+    return;
+  }
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const contract = new ethers.Contract(contractAddress, contractABI, provider);
+
+  try {
+    setLoading(true);
+
+    const product = await contract.products(productId);
+
+    if (product.exists) {
+      let priceInWei = product.price.toString();
+      console.log('Valeur brute récupérée du smart contract :', priceInWei);
+
+      let priceBNB = ethers.utils.formatUnits(priceInWei, 18);
+      console.log('Prix du produit après conversion :', priceBNB, 'BNB');
+
+      return { priceInBNB: parseFloat(priceBNB) };
+    } else {
+      console.log('Produit non trouvé');
+
+      // Produit inexistant → réinitialiser l'interface
+      setSelectedProductId("");
+      setProductInfo(null);
+      setProductPrice(null);
+      setConvertedPrice(null);
+      return null;
     }
-  
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const contract = new ethers.Contract(contractAddress, contractABI, provider);
-  
-    try {
-      setLoading(true);
-      // Récupérer le produit depuis le smart contract
-      const product = await contract.products(productId);
-  
-      if (product.exists) {
-        let priceInWei = product.price.toString();  // Récupère la valeur brute du prix (en Wei)
-  
-        // Affiche la valeur brute du prix pour débogage
-        console.log('Valeur brute récupérée du smart contract :', priceInWei);
-  
-        // Utiliser `ethers.utils.formatUnits()` pour convertir en BNB (18 décimales par défaut)
-        let priceBNB = ethers.utils.formatUnits(priceInWei, 18);
-  
-        console.log('Prix du produit après conversion :', priceBNB, 'BNB');
-        
-        // Retourner le prix en BNB
-        return { priceInBNB: parseFloat(priceBNB) }; // Assure-toi de retourner un nombre flottant
-      } else {
-        console.log('Produit non trouvé');
-        return null;  // Retourner null si le produit n'existe pas
-      }
-    } catch (error) {
-      console.error('Erreur lors de la récupération du prix', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération du prix', error);
+
+    // En cas d'erreur → réinitialiser l'interface
+    setSelectedProductId("");
+    setProductInfo(null);
+    setProductPrice(null);
+    setConvertedPrice(null);
+    return null;
+  } finally {
+    setLoading(false);
+  }
+};
+
   
 
 
@@ -747,7 +763,6 @@ const handleProductSelection = async (event) => {
   const selectedId = event.target.value;
   setSelectedProductId(selectedId);
 
-  // Si l'utilisateur a sélectionné l'option vide
   if (selectedId === "") {
     setProductInfo(null);
     setProductPrice(null);
@@ -755,17 +770,25 @@ const handleProductSelection = async (event) => {
     return;
   }
 
-  updateProductInfo(selectedId);  // Met à jour les infos locales pour le produit
-  const result = await fetchProductPrice(selectedId); // Appelle la fonction pour récupérer le prix du produit
+  updateProductInfo(selectedId);
 
-  // Si le résultat est valide, on met à jour `productInfo` avec le prix récupéré
-  if (result?.priceInBNB !== null) {
+  const result = await fetchProductPrice(selectedId);
+
+  if (result?.priceInBNB !== null && !isNaN(result.priceInBNB)) {
     setProductInfo((prevState) => ({
       ...prevState,
       priceInBNB: result.priceInBNB
     }));
+  } else {
+    // En cas d’erreur (ex : MetaMask manquant), on réinitialise le selecteur
+    setSelectedProductId("");
+    setProductInfo(null);
+    setProductPrice(null);
+    setConvertedPrice(null);
+    alert("Impossible de charger les données du produit. Veuillez vous assurer que MetaMask est installé.");
   }
 };
+
 
 
 
@@ -807,7 +830,11 @@ return (
             </div>
           )}
 
-          <select onChange={handleProductSelection} value={selectedProductId}>
+          <select
+            key={selectedProductId || 'empty'}
+            onChange={handleProductSelection} 
+            value={selectedProductId}
+          >
             <option value="">Sélectionnez un produit</option>
             <option value="product1">Indicateur Daily</option>
             <option value="product2">Indicateur 4h/1h</option>
