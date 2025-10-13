@@ -390,7 +390,7 @@ function App() {
                               (window.ethereum && window.ethereum.isMetaMask);
   
     // ✅ Domaine de ton site sans "https://" ni "/"
-    const dappURL = "leverage-indicator.netlify.app";
+    const dappURL = "https://leverage-indicator.netlify.app"; // mettre le https:// complet
   
     // 🚫 Cas 1 : Aucun wallet détecté → redirection vers MetaMask mobile
     if (!window.ethereum) {
