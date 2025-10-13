@@ -393,7 +393,7 @@ function App() {
     const dappURL = "leverage-indicator.netlify.app";  // Remplace par ton URL sans le https://
   
     // Version du site
-    const version = "1.0";  // Le numéro de version à utiliser
+    const version = "2.0";  // Le numéro de version à utiliser
   
     // Fonction pour ajouter ou mettre à jour le paramètre de version dans l'URL
     function updateVersionInURL() {
@@ -473,7 +473,8 @@ function App() {
   
     // 🚨 Cas 4 : aucun wallet détecté (couvre les cas non anticipés)
     alert("Aucun portefeuille détecté. Veuillez ouvrir cette page dans le navigateur MetaMask.");
-  };
+};
+
   
   
   
