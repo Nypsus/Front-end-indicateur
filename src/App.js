@@ -390,13 +390,14 @@ function App() {
                               (window.ethereum && window.ethereum.isMetaMask);
   
     // ✅ Domaine de ton site sans "https://" ni "/"
-    const dappURL = "https://leverage-indicator.netlify.app";  // Remplace par ton URL
+    const dappURL = "leverage-indicator.netlify.app";  // Remplace par ton URL sans le https://
   
     // Version du site
     const version = "1.0";  // Le numéro de version à utiliser
   
     // Fonction pour ajouter ou mettre à jour le paramètre de version dans l'URL
     function updateVersionInURL() {
+      console.log("Mise à jour de l'URL avec la version");
       const currentURL = window.location.href;
   
       if (currentURL.includes("v=")) {
@@ -473,6 +474,7 @@ function App() {
     // 🚨 Cas 4 : aucun wallet détecté (couvre les cas non anticipés)
     alert("Aucun portefeuille détecté. Veuillez ouvrir cette page dans le navigateur MetaMask.");
   };
+  
   
   
   
