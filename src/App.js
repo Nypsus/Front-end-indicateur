@@ -387,16 +387,23 @@ function App() {
   const connectWallet = async () => {
     const isMetaMaskMobile = /MetaMask/i.test(navigator.userAgent);
     const isInAppBrowser = /instagram|fb_iab|fbav|tiktok/i.test(navigator.userAgent);
+    const dappURL = "leverage-indicator.netlify.app";
   
+    // 🧱 Cas 1 : aucun wallet détecté → ouverture directe du navigateur MetaMask
     if (!window.ethereum && !isMetaMaskMobile) {
       if (isInAppBrowser) {
-        alert("Ouvrez cette page dans Safari ou Chrome, puis reconnectez votre wallet.");
+        alert("Ce navigateur ne permet pas la connexion. Cliquez sur 'Ouvrir dans MetaMask' ci-dessous.");
+        // Proposer une vraie ouverture MetaMask
+        window.location.href = `metamask://dapp/https://${dappURL}`;
         return;
       }
-      window.location.replace("https://metamask.app.link/dapp/https://leverage-indicator.netlify.app/");
+  
+      // Redirection directe (préférée à App Link)
+      window.location.href = `metamask://dapp/https://${dappURL}`;
       return;
     }
   
+    // ✅ Cas 2 : déjà dans MetaMask mobile → connexion normale
     if (window.ethereum && isMetaMaskMobile) {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -405,15 +412,15 @@ function App() {
         setProvider(provider);
         setWalletAddress(address);
         setWalletConnected(true);
-        console.log("✅ Connecté à MetaMask Mobile :", address);
+        console.log("✅ Connecté à MetaMask mobile :", address);
       } catch (err) {
-        console.error("Erreur MetaMask mobile :", err);
+        console.error("Erreur connexion MetaMask mobile :", err);
         alert("Connexion échouée à MetaMask mobile.");
       }
       return;
     }
   
-    // Desktop (Web3Modal)
+    // 💻 Cas 3 : desktop → Web3Modal
     if (window.ethereum) {
       try {
         const instance = await web3Modal.connect();
@@ -425,13 +432,16 @@ function App() {
         setWalletConnected(true);
         console.log("✅ Wallet connecté sur desktop :", address);
       } catch (err) {
-        console.error("Erreur desktop :", err);
+        console.error("Erreur connexion desktop :", err);
         alert("Connexion au wallet échouée sur desktop.");
       }
-    } else {
-      alert("Aucun portefeuille détecté.");
+      return;
     }
+  
+    // 🚨 Cas 4 : aucun wallet trouvé
+    alert("Aucun portefeuille détecté. Installez MetaMask pour continuer.");
   };
+  
   
   
   
