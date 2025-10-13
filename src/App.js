@@ -385,42 +385,60 @@ function App() {
   // Connexion au wallet via Web3Modal
   
   const connectWallet = async () => {
-    const isMetaMaskBrowser = /MetaMask/i.test(navigator.userAgent) || (window.ethereum && window.ethereum.isMetaMask);
-    const dappURL = "https://leverage-indicator.netlify.app";
+    // ✅ Détection améliorée du navigateur MetaMask
+    const isMetaMaskBrowser = /MetaMask/i.test(navigator.userAgent) || 
+                              (window.ethereum && window.ethereum.isMetaMask);
   
-    // 🧱 Cas 1 : Pas de MetaMask sur mobile
-    if (!window.ethereum && !isMetaMaskBrowser) {
-      const isMobile = /android|iphone/i.test(navigator.userAgent);  // Détecter si l'utilisateur est sur mobile
-      
-      if (isMobile) {
-        // Rediriger l'utilisateur vers l'App Store ou Google Play pour installer MetaMask
-        if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-          // Redirection vers l'App Store sur iOS
-          window.location.href = "https://apps.apple.com/us/app/metamask/id1438144202";
-        } else {
-          // Redirection vers Google Play sur Android
-          window.location.href = "https://play.google.com/store/apps/details?id=io.metamask";
-        }
+    // ✅ Domaine de ton site sans "https://" ni "/"
+    const dappURL = "https://leverage-indicator.netlify.app";  // Remplace par ton URL
+  
+    // Version du site
+    const version = "1.0";  // Le numéro de version à utiliser
+  
+    // Fonction pour ajouter ou mettre à jour le paramètre de version dans l'URL
+    function updateVersionInURL() {
+      const currentURL = window.location.href;
+  
+      if (currentURL.includes("v=")) {
+        // Si le paramètre 'v' existe déjà, on le met à jour
+        const newURL = currentURL.replace(/v=\d+\.\d+/g, `v=${version}`);
+        window.history.replaceState({}, "", newURL);  // Met à jour l'URL sans recharger la page
       } else {
-        alert("MetaMask n'est pas installé. Installez MetaMask et réessayez.");
+        // Si le paramètre 'v' n'existe pas, on l'ajoute
+        const newURL = currentURL.includes('?')
+          ? `${currentURL}&v=${version}` 
+          : `${currentURL}?v=${version}`;
+        window.history.replaceState({}, "", newURL);  // Met à jour l'URL sans recharger la page
       }
+    }
+  
+    // Met à jour l'URL avec le numéro de version
+    updateVersionInURL();
+  
+    // 🚫 Cas 1 : Aucun wallet détecté → redirection vers MetaMask mobile
+    if (!window.ethereum) {
+      alert("Veuillez ouvrir cette page directement dans le navigateur MetaMask pour continuer.");
+      window.location.href = `https://metamask.app.link/dapp/${dappURL}?v=${version}`;
       return;
     }
   
-    // ✅ Cas 2 : Si MetaMask est déjà installé sur le mobile
+    // ✅ Cas 2 : utilisateur déjà DANS le navigateur MetaMask mobile
     if (window.ethereum && isMetaMaskBrowser) {
       try {
-        // Demander à MetaMask de nous autoriser à nous connecter
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        const address = accounts[0];
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+  
         setProvider(provider);
         setWalletAddress(address);
         setWalletConnected(true);
+  
         console.log("✅ Connecté à MetaMask mobile :", address);
-        
-        // Ouvrir directement le site dans l'explorateur MetaMask
-        window.location.href = `metamask://dapp/${dappURL}`;  // Ouvre directement dans MetaMask
+  
+        // Redirige vers MetaMask avec l'URL mise à jour
+        const urlWithVersion = `${dappURL}?v=${version}`;
+        window.location.href = `metamask://dapp/${urlWithVersion}`;  // Redirige vers MetaMask avec la nouvelle URL
   
       } catch (err) {
         console.error("Erreur de connexion MetaMask mobile :", err);
@@ -429,27 +447,34 @@ function App() {
       return;
     }
   
-    // 💻 Cas 3 : Desktop avec Web3Modal pour détecter MetaMask
-    if (window.ethereum) {
+    // 💻 Cas 3 : Desktop → on utilise Web3Modal (extension MetaMask ou autre wallet)
+    if (window.ethereum && !isMetaMaskBrowser) {
       try {
+        console.log("Connexion via Web3Modal (desktop)...");
+  
         const instance = await web3Modal.connect();
         const newProvider = new ethers.providers.Web3Provider(instance);
         const signer = newProvider.getSigner();
         const address = await signer.getAddress();
+  
         setProvider(newProvider);
         setWalletAddress(address);
         setWalletConnected(true);
+  
         console.log("✅ Wallet connecté sur desktop :", address);
-      } catch (err) {
-        console.error("Erreur de connexion au wallet sur desktop :", err);
-        alert("Erreur de connexion au wallet sur desktop.");
+      } catch (error) {
+        console.error("Erreur lors de la connexion au portefeuille desktop :", error);
+        alert("Erreur de connexion au portefeuille sur desktop.");
+        web3Modal.clearCachedProvider();
       }
       return;
     }
   
-    // 🚨 Cas 4 : Aucune connexion possible
-    alert("Aucun portefeuille détecté. Installez MetaMask et ouvrez cette page depuis son navigateur.");
+    // 🚨 Cas 4 : aucun wallet détecté (couvre les cas non anticipés)
+    alert("Aucun portefeuille détecté. Veuillez ouvrir cette page dans le navigateur MetaMask.");
   };
+  
+  
   
   
   
