@@ -385,80 +385,68 @@ function App() {
   // Connexion au wallet via Web3Modal
   
   const connectWallet = async () => {
-    if (isMobileDevice()) {
-      // Redirection mobile vers MetaMask avec ton site embarqué
-      const dappURL = "leverage-indicator.netlify.app/"; // ← remplace par ton vrai domaine SANS https://
-      const metamaskAppDeepLink = `https://metamask.app.link/dapp/${dappURL}`;
+    // ✅ Détection améliorée du navigateur MetaMask
+    const isMetaMaskBrowser = /MetaMask/i.test(navigator.userAgent) || 
+                              (window.ethereum && window.ethereum.isMetaMask);
   
-      // Petite sécurité : tenter de rediriger proprement
+    // ✅ Domaine de ton site sans "https://" ni "/"
+    const dappURL = "leverage-indicator.netlify.app";
+  
+    // 🚫 Cas 1 : Aucun wallet détecté → redirection vers MetaMask mobile
+    if (!window.ethereum) {
+      alert("Veuillez ouvrir cette page directement dans le navigateur MetaMask pour continuer.");
+      window.location.href = `https://metamask.app.link/dapp/${dappURL}`;
+      return;
+    }
+  
+    // ✅ Cas 2 : utilisateur déjà DANS le navigateur MetaMask mobile
+    if (window.ethereum && isMetaMaskBrowser) {
       try {
-        window.location.href = metamaskAppDeepLink;
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+  
+        setProvider(provider);
+        setWalletAddress(address);
+        setWalletConnected(true);
+  
+        console.log("✅ Connecté à MetaMask mobile :", address);
       } catch (err) {
-        alert("Veuillez installer MetaMask pour continuer.");
-        // Redirection vers App Store ou Play Store
-        window.location.href = "https://metamask.io/download/";
+        console.error("Erreur de connexion à MetaMask mobile :", err);
+        alert("Connexion à MetaMask échouée sur mobile.");
       }
-  
-      return; // On ne continue pas plus loin sur mobile
-    }
-
-     // Cas desktop → si MetaMask n’est pas installé
-    if (typeof window.ethereum === "undefined" || !window.ethereum.isMetaMask) {
-      alert("MetaMask nest pas installé. Vous allez être redirigé vers la page de téléchargement.");
-      window.open("https://metamask.io/download/", "_blank");
       return;
     }
-
-
-    // Desktop flow (comme avant)
-    if (!web3Modal) {
-      console.error("Web3Modal non initialisé");
-      return;
-    }
-    
-    try {
-      console.log("Tentative de connexion au wallet...");
-      
-      
-      // Connexion via Web3Modal
-      const instance = await web3Modal.connect();
-      const newProvider = new ethers.providers.Web3Provider(instance);
-      
-      // S'assurer que le provider est correctement défini
-      if (!newProvider) {
-        console.error("Le fournisseur Web3 n'a pas été correctement créé");
-        return;
-      }
-      
-      setProvider(newProvider);
   
-      // Récupérer l'adresse du wallet
-      const signer = newProvider.getSigner();
-      const address = await signer.getAddress();
-      
-      setWalletAddress(address);
-      setWalletConnected(true);
-      
-      console.log(`Wallet connecté: ${address}`);
-    } catch (error) {
-      console.error("Erreur lors de la connexion au portefeuille:", error);
-      alert("Erreur de connexion au portefeuille. Veuillez connecter votre wallet.");
-      // Ferme Web3Modal
-      web3Modal.clearCachedProvider();
-
-      // Relance le processus de reconnexion via MetaMask
+    // 💻 Cas 3 : Desktop → on utilise Web3Modal (extension MetaMask ou autre wallet)
+    if (window.ethereum && !isMetaMaskBrowser) {
       try {
-        if (typeof window.ethereum !== "undefined") {
-          await reconnectToMetaMask();
-        } else {
-          alert("MetaMask n'est pas installé.");
-        }
-      } catch (retryError) {
-        console.error("Échec de la reconnexion à MetaMask", retryError);
-        alert("La reconnexion à MetaMask a échoué.");
+        console.log("Connexion via Web3Modal (desktop)...");
+        const instance = await web3Modal.connect();
+        const newProvider = new ethers.providers.Web3Provider(instance);
+        const signer = newProvider.getSigner();
+        const address = await signer.getAddress();
+  
+        setProvider(newProvider);
+        setWalletAddress(address);
+        setWalletConnected(true);
+  
+        console.log("✅ Wallet connecté sur desktop :", address);
+      } catch (error) {
+        console.error("Erreur lors de la connexion au portefeuille desktop :", error);
+        alert("Erreur de connexion au portefeuille sur desktop.");
+        web3Modal.clearCachedProvider();
       }
+      return;
     }
+  
+    // 🚨 Cas 4 : aucun wallet détecté (couvre les cas non anticipés)
+    alert("Aucun portefeuille détecté. Veuillez ouvrir cette page dans le navigateur MetaMask.");
   };
+  
+  
+  
   
 
   // Récupération du taux de conversion BNB vers USD
@@ -817,17 +805,6 @@ const handleProductSelection = async (event) => {
 };
 
 
-const redirectToMetaMaskApp = () => {
-  const dappURL = "www.tonsite.com"; // Remplace par ton domaine
-  const metamaskAppDeepLink = `https://metamask.app.link/dapp/${dappURL}`;
-
-  try {
-    window.location.href = metamaskAppDeepLink;
-  } catch (err) {
-    alert("MetaMask n'est pas installé. Vous pouvez le télécharger ici : https://metamask.io/download/");
-  }
-};
-
 
   
   
@@ -843,11 +820,7 @@ return (
 
 
       {/* Affichage du bouton sur mobile seulement */}
-      {isMobileDevice() && !walletConnected && (
-        <div className="mobile-wallet-redirect">
-          <button onClick={redirectToMetaMaskApp}>Ouvrir dans MetaMask</button>
-        </div>
-      )}
+      
 
       <div className="content">
         <div className="wallet-connect-button">
